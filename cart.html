@@ -1,0 +1,213 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Shopping Cart</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                background-color: #f4f4f4;
+            }
+
+            header {
+                background-color: #333;
+                color: #fff;
+                padding: 20px;
+                text-align: center;
+            }
+
+            .container {
+                max-width: 800px;
+                margin: 20px auto;
+                padding: 20px;
+                background-color: #fff;
+                border-radius: 5px;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            }
+
+            .item {
+                margin-bottom: 20px;
+                border-bottom: 1px solid #ccc;
+                padding-bottom: 20px;
+                display: flex;
+                align-items: center;
+            }
+
+            .item img {
+                max-width: 100px;
+                margin-right: 20px;
+            }
+
+            .item p {
+                margin: 0;
+            }
+
+            .quantity {
+                margin-right: 10px;
+            }
+
+            .delete {
+                background-color: red;
+                color: white;
+                padding: 5px 10px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+
+            #totalAmount {
+                font-weight: bold;
+                font-size: 18px;
+                margin-top: 20px;
+            }
+
+            #billContainer {
+                margin-top: 20px;
+            }
+
+            #billContainer table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            #billContainer th, #billContainer td {
+                padding: 8px;
+                text-align: left;
+                border-bottom: 1px solid #ddd;
+            }
+
+            #billContainer th {
+                background-color: #f2f2f2;
+            }
+        </style>
+    </head>
+    <body>
+
+    <header>
+        <h1>Shopping Cart</h1>
+    </header>
+
+    <div class="container" id="cartItems">
+        <!-- Cart items will be dynamically added here -->
+    </div>
+
+    <div id="totalAmount"></div>
+
+    <div id="billContainer">
+        <h2>Bill</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody id="billBody">
+                <!-- Bill details will be dynamically added here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Retrieve cart items from localStorage
+        var cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+        
+        // Define the prices for each item
+        var itemPrices = {
+            Laptop: 66000,
+            Smartphone: 78000,
+            Tablet: 30000,
+            Headphones: 4000
+        };
+
+        // Get the container element for cart items
+        var cartContainer = document.getElementById('cartItems');
+        
+        // Get the container element for bill details
+        var billBody = document.getElementById('billBody');
+        
+        // Loop through each item in the cart and dynamically generate HTML to display them
+        cartItems.forEach(function(item, index) {
+            // Check if the item is defined and has a price
+            if (item && itemPrices[item.name]) {
+                var itemElement = document.createElement('div');
+                itemElement.classList.add('item');
+                
+                // Create an image element
+                var imgElement = document.createElement('img');
+                imgElement.src = item.image;
+                imgElement.alt = item.name;
+                itemElement.appendChild(imgElement);
+                
+                // Create a paragraph element for item name
+                var pElement = document.createElement('p');
+                pElement.textContent = item.name;
+                itemElement.appendChild(pElement);
+
+                // Create a paragraph element for item price
+                var priceElement = document.createElement('p');
+                priceElement.textContent = 'Price: $' + itemPrices[item.name].toFixed(2);
+                itemElement.appendChild(priceElement);
+                
+                // Create input element for quantity
+                var quantityInput = document.createElement('input');
+                quantityInput.type = 'number';
+                quantityInput.value = 1; // Default quantity
+                quantityInput.min = 1;
+                quantityInput.classList.add('quantity');
+                quantityInput.addEventListener('input', function() {
+                    updateBill();
+                });
+                itemElement.appendChild(quantityInput);
+                
+                // Create delete button
+                var deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.classList.add('delete');
+                deleteButton.onclick = function() {
+                    // Remove the item from the cart
+                    cartItems.splice(index, 1);
+                    // Update localStorage
+                    localStorage.setItem('cart', JSON.stringify(cartItems));
+                    // Remove the item from the UI
+                    cartContainer.removeChild(itemElement);
+                    // Update total amount
+                    displayTotalAmount();
+                    updateBill();
+                };
+                itemElement.appendChild(deleteButton);
+                
+                // Append the item element to the container
+                cartContainer.appendChild(itemElement);
+            }
+        });
+
+        // Function to update bill details
+        function updateBill() {
+            // Clear previous bill details
+            billBody.innerHTML = '';
+            var totalAmount = 0;
+            var totalItems = 0;
+            cartItems.forEach(function(item, index) {
+                var quantity = parseInt(document.querySelectorAll('.quantity')[index].value);
+                var total = quantity * itemPrices[item.name];
+                totalAmount += total;
+                totalItems += quantity;
+                var row = '<tr><td>' + item.name + '</td><td>' + quantity + '</td><td>$' + itemPrices[item.name].toFixed(2) + '</td><td>$' + total.toFixed(2) + '</td></tr>';
+                billBody.insertAdjacentHTML('beforeend', row);
+            });
+            document.getElementById('totalAmount').textContent = 'Total Amount: $' + totalAmount.toFixed(2) + ' (Total Items: ' + totalItems + ')';
+        }
+
+        // Call the function to initially display the total amount and bill
+        displayTotalAmount();
+        updateBill();
+    </script>
+
+    </body>
+    </html>
